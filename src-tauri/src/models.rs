@@ -1,0 +1,148 @@
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Note {
+    pub id: i64,
+    pub title: String,
+    pub original_filename: Option<String>,
+    pub audio_path: Option<String>,
+    pub language: Option<String>,
+    pub duration_seconds: Option<i64>,
+    pub created_at: String,
+    pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Segment {
+    pub id: i64,
+    pub note_id: i64,
+    pub text: String,
+    pub start_ms: i64,
+    pub end_ms: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NoteWithSegments {
+    #[serde(flatten)]
+    pub note: Note,
+    pub segments: Vec<Segment>,
+    pub full_text: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptionSegment {
+    pub text: String,
+    pub start_ms: i64,
+    pub end_ms: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptionResult {
+    pub segments: Vec<TranscriptionSegment>,
+    pub full_text: String,
+    pub duration_seconds: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WhisperModel {
+    pub name: String,
+    pub file_name: String,
+    pub size_mb: u32,
+    pub url: String,
+    pub description: String,
+}
+
+// Static model definition for const array
+pub struct WhisperModelDef {
+    pub name: &'static str,
+    pub file_name: &'static str,
+    pub size_mb: u32,
+    pub url: &'static str,
+    pub description: &'static str,
+}
+
+impl WhisperModelDef {
+    pub fn to_model(&self) -> WhisperModel {
+        WhisperModel {
+            name: self.name.to_string(),
+            file_name: self.file_name.to_string(),
+            size_mb: self.size_mb,
+            url: self.url.to_string(),
+            description: self.description.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DownloadProgress {
+    pub downloaded: u64,
+    pub total: u64,
+    pub percent: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TranscriptionProgress {
+    pub phase: String,           // "loading", "transcribing"
+    pub processed_chunks: u32,
+    pub total_chunks: u32,
+    pub chunk_progress: i32,     // 0-100 progress within current chunk
+    pub percent: f32,            // overall progress
+    pub current_segments: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct AppSettings {
+    pub transcription_language: String,
+    pub active_whisper_model: String,
+    pub custom_model_path: Option<String>,
+}
+
+impl AppSettings {
+    pub fn default_settings() -> Self {
+        Self {
+            transcription_language: "auto".to_string(),
+            active_whisper_model: "ggml-base.bin".to_string(),
+            custom_model_path: None,
+        }
+    }
+}
+
+pub const AVAILABLE_MODELS: &[WhisperModelDef] = &[
+    WhisperModelDef {
+        name: "Tiny",
+        file_name: "ggml-tiny.bin",
+        size_mb: 75,
+        url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin",
+        description: "Fastest, lower accuracy",
+    },
+    WhisperModelDef {
+        name: "Base",
+        file_name: "ggml-base.bin",
+        size_mb: 142,
+        url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin",
+        description: "Fast, decent accuracy",
+    },
+    WhisperModelDef {
+        name: "Small",
+        file_name: "ggml-small.bin",
+        size_mb: 466,
+        url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin",
+        description: "Balanced speed and accuracy",
+    },
+    WhisperModelDef {
+        name: "Medium",
+        file_name: "ggml-medium.bin",
+        size_mb: 1500,
+        url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
+        description: "Best accuracy (recommended)",
+    },
+];
