@@ -143,6 +143,20 @@ pub const AVAILABLE_MODELS: &[WhisperModelDef] = &[
         file_name: "ggml-medium.bin",
         size_mb: 1500,
         url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium.bin",
-        description: "Best accuracy (recommended)",
+        description: "High accuracy, good for most use cases",
+    },
+    WhisperModelDef {
+        name: "Large v2",
+        file_name: "ggml-large-v2.bin",
+        size_mb: 3094,
+        url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v2.bin",
+        description: "Best accuracy, slower (recommended for noisy audio)",
+    },
+    WhisperModelDef {
+        name: "Large v3",
+        file_name: "ggml-large-v3.bin",
+        size_mb: 3095,
+        url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin",
+        description: "Latest large model, may have regressions for some languages",
     },
 ];
