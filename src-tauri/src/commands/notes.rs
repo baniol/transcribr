@@ -94,6 +94,7 @@ pub fn get_note(id: i64, db: State<'_, Mutex<Connection>>) -> Result<NoteWithSeg
 pub fn create_note(
     title: String,
     original_filename: Option<String>,
+    audio_path: Option<String>,
     language: Option<String>,
     duration_seconds: Option<i64>,
     segments: Vec<TranscriptionSegment>,
@@ -102,8 +103,8 @@ pub fn create_note(
     let conn = db.lock().map_err(|e| format!("DB lock error: {}", e))?;
 
     conn.execute(
-        "INSERT INTO notes (title, original_filename, language, duration_seconds) VALUES (?1, ?2, ?3, ?4)",
-        rusqlite::params![title, original_filename, language, duration_seconds],
+        "INSERT INTO notes (title, original_filename, audio_path, language, duration_seconds) VALUES (?1, ?2, ?3, ?4, ?5)",
+        rusqlite::params![title, original_filename, audio_path, language, duration_seconds],
     )
     .map_err(|e| format!("Insert error: {}", e))?;
 
@@ -133,6 +134,23 @@ pub fn update_note_title(
         rusqlite::params![title, id],
     )
     .map_err(|e| format!("Update error: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn update_segment_text(
+    id: i64,
+    text: String,
+    db: State<'_, Mutex<Connection>>,
+) -> Result<(), String> {
+    let conn = db.lock().map_err(|e| format!("DB lock error: {}", e))?;
+
+    conn.execute(
+        "UPDATE segments SET text = ?1 WHERE id = ?2",
+        rusqlite::params![text, id],
+    )
+    .map_err(|e| format!("Update segment error: {}", e))?;
 
     Ok(())
 }

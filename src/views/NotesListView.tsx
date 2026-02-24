@@ -72,6 +72,7 @@ export function NotesListView({
           const noteId = await create(
             noteTitle,
             fileName,
+            filePath,
             language === "auto" ? null : language,
             result.durationSeconds,
             result.segments

@@ -48,6 +48,7 @@ export function useNotes() {
     async (
       title: string,
       originalFilename: string | null,
+      audioPath: string | null,
       language: string | null,
       durationSeconds: number | null,
       segments: TranscriptionSegment[]
@@ -55,6 +56,7 @@ export function useNotes() {
       const id = await createNote(
         title,
         originalFilename,
+        audioPath,
         language,
         durationSeconds,
         segments

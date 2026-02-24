@@ -1,11 +1,12 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { PageSpinner } from "../components/ui/Spinner";
 import { Dialog } from "../components/ui/Dialog";
 import { SegmentList } from "../components/notes/SegmentList";
+import { AudioPlayer, AudioPlayerRef } from "../components/AudioPlayer";
 import { useNote } from "../hooks/useNotes";
-import { updateNoteTitle, deleteNote } from "../api/notes";
+import { updateNoteTitle, deleteNote, updateSegmentText } from "../api/notes";
 import { useToast } from "../contexts/ToastContext";
 
 interface NoteDetailViewProps {
@@ -21,6 +22,20 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
   const [newTitle, setNewTitle] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showSegments, setShowSegments] = useState(true);
+  const [seekTo, setSeekTo] = useState<{ timeMs: number; id: number } | undefined>(undefined);
+  const seekIdRef = useRef(0);
+  const audioPlayerRef = useRef<AudioPlayerRef>(null);
+
+  const handleTimestampClick = useCallback((timeMs: number) => {
+    seekIdRef.current += 1;
+    setSeekTo({ timeMs, id: seekIdRef.current });
+  }, []);
+
+  const handleSegmentUpdate = useCallback(async (id: number, text: string) => {
+    await updateSegmentText(id, text);
+    await refresh();
+    showToast("Segment updated", "success");
+  }, [refresh, showToast]);
 
   const handleEditTitle = useCallback(() => {
     if (note) {
@@ -200,7 +215,11 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
 
       <div className="flex-1 overflow-y-auto p-4">
         {showSegments ? (
-          <SegmentList segments={note.segments} />
+          <SegmentList
+            segments={note.segments}
+            onTimestampClick={note.audioPath ? handleTimestampClick : undefined}
+            onSegmentUpdate={handleSegmentUpdate}
+          />
         ) : (
           <div className="prose dark:prose-invert max-w-none">
             <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
@@ -209,6 +228,14 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
           </div>
         )}
       </div>
+
+      {note.audioPath && (
+        <AudioPlayer
+          ref={audioPlayerRef}
+          audioPath={note.audioPath}
+          seekTo={seekTo}
+        />
+      )}
 
       <Dialog
         open={deleteDialogOpen}

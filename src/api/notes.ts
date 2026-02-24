@@ -12,6 +12,7 @@ export async function getNote(id: number): Promise<NoteWithSegments> {
 export async function createNote(
   title: string,
   originalFilename: string | null,
+  audioPath: string | null,
   language: string | null,
   durationSeconds: number | null,
   segments: TranscriptionSegment[]
@@ -19,6 +20,7 @@ export async function createNote(
   return invoke<number>("create_note", {
     title,
     originalFilename,
+    audioPath,
     language,
     durationSeconds,
     segments,
@@ -34,6 +36,13 @@ export async function updateNoteTitle(
 
 export async function deleteNote(id: number): Promise<void> {
   return invoke<void>("delete_note", { id });
+}
+
+export async function updateSegmentText(
+  id: number,
+  text: string
+): Promise<void> {
+  return invoke<void>("update_segment_text", { id, text });
 }
 
 export async function searchNotes(query: string): Promise<Note[]> {
