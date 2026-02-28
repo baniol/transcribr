@@ -15,14 +15,28 @@ Built with [Tauri 2](https://tauri.app/) (React/TypeScript frontend + Rust backe
 - **Auto language detection** — or manually select from supported languages
 - **Dark mode** — respects system preferences
 
-## Requirements
+## Installation
+
+Download the latest `.dmg` from [Releases](https://github.com/marcinbaniowski/transcribr/releases), open it and drag Transcribr to Applications.
+
+Since the app is not signed with an Apple Developer certificate, macOS will block it on first launch. Remove the quarantine attribute:
+
+```bash
+xattr -cr /Applications/Transcribr.app
+```
+
+On first launch, download a Whisper model from Settings. The **Base** model (142 MB) is a good starting point.
+
+## Building from Source
+
+### Requirements
 
 - macOS 10.15 (Catalina) or later
 - [Node.js](https://nodejs.org/) 18+
 - [Rust](https://www.rust-lang.org/tools/install) 1.70+
 - Xcode Command Line Tools (`xcode-select --install`)
 
-## Getting Started
+### Getting Started
 
 ```bash
 # Clone the repository
@@ -35,8 +49,6 @@ make install
 # Start development server
 make dev
 ```
-
-On first launch, download a Whisper model from Settings. The **Base** model (142 MB) is a good starting point.
 
 ## Building
 

@@ -94,12 +94,13 @@ db-reset: ## Delete the local SQLite database
 
 APP_ID := com.marcinbaniowski.transcribr
 
-nuke: ## Remove all app data (database, models, caches, logs)
+nuke: ## Remove all app data and app from /Applications
 	rm -rf ~/Library/Application\ Support/$(APP_ID)
 	rm -rf ~/Library/Caches/$(APP_ID)
 	rm -rf ~/Library/Logs/$(APP_ID)
 	rm -rf ~/Library/WebKit/$(APP_ID)
-	@echo "All app data removed."
+	rm -rf /Applications/Transcribr.app
+	@echo "All app data and application removed."
 
 # ─── Short Aliases ────────────────────────────────────────────────────────────
 
