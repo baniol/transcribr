@@ -8,6 +8,9 @@ dist-ssr/
 # Tauri / Rust
 src-tauri/target/
 
+# Test coverage
+coverage/
+
 # Logs
 *.log
 npm-debug.log*
@@ -18,7 +21,9 @@ npm-debug.log*
 .env.*.local
 
 # Editor / IDE
-.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.swp
 *.swo
@@ -29,3 +34,13 @@ Thumbs.db
 
 # TypeScript
 *.tsbuildinfo
+
+# Cache
+.cache/
+
+# Temp files
+*.tmp
+*.bak
+
+# Session data
+opencode_sessions/

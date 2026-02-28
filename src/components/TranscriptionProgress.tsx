@@ -11,10 +11,7 @@ interface TranscriptionProgressProps {
   onCancel: () => void;
 }
 
-export function TranscriptionProgress({
-  fileName,
-  onCancel,
-}: TranscriptionProgressProps) {
+export function TranscriptionProgress({ fileName, onCancel }: TranscriptionProgressProps) {
   const [progress, setProgress] = useState<TranscriptionProgressType | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
@@ -93,12 +90,7 @@ export function TranscriptionProgress({
             )}
           </div>
 
-          <Button
-            variant="secondary"
-            className="mt-6"
-            onClick={handleCancel}
-            disabled={cancelling}
-          >
+          <Button variant="secondary" className="mt-6" onClick={handleCancel} disabled={cancelling}>
             {cancelling ? "Cancelling..." : "Cancel"}
           </Button>
 

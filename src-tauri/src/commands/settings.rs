@@ -28,11 +28,7 @@ pub fn update_setting(
         "transcription_language" => settings.transcription_language = value,
         "active_whisper_model" => settings.active_whisper_model = value,
         "custom_model_path" => {
-            settings.custom_model_path = if value.is_empty() {
-                None
-            } else {
-                Some(value)
-            };
+            settings.custom_model_path = if value.is_empty() { None } else { Some(value) };
         }
         _ => return Err(format!("Unknown setting key: {}", key)),
     }

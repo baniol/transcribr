@@ -9,12 +9,7 @@ interface NotesListProps {
   onNoteClick: (id: number) => void;
 }
 
-export function NotesList({
-  notes,
-  loading,
-  error,
-  onNoteClick,
-}: NotesListProps) {
+export function NotesList({ notes, loading, error, onNoteClick }: NotesListProps) {
   if (loading) {
     return <PageSpinner />;
   }
@@ -31,9 +26,7 @@ export function NotesList({
     return (
       <div className="text-center py-12 text-gray-500 dark:text-gray-400">
         <p className="text-lg">No notes yet</p>
-        <p className="text-sm mt-2">
-          Click "New Transcription" to create your first note
-        </p>
+        <p className="text-sm mt-2">Click "New Transcription" to create your first note</p>
       </div>
     );
   }

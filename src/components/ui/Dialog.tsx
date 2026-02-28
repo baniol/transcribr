@@ -9,13 +9,7 @@ interface DialogProps {
   size?: "sm" | "md" | "lg";
 }
 
-export function Dialog({
-  open,
-  onClose,
-  title,
-  children,
-  size = "md",
-}: DialogProps) {
+export function Dialog({ open, onClose, title, children, size = "md" }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,11 +38,7 @@ export function Dialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="fixed inset-0 bg-black/50"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} aria-hidden="true" />
       <div
         ref={dialogRef}
         className={clsx(

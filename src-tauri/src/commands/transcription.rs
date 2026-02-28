@@ -37,7 +37,10 @@ pub fn get_model_status(app: AppHandle, file_name: String) -> Result<bool, Strin
 pub fn is_model_downloaded(app: AppHandle, state: State<'_, AppState>) -> Result<bool, String> {
     let (active_model, custom_path) = {
         let settings = state.settings.safe_read()?;
-        (settings.active_whisper_model.clone(), settings.custom_model_path.clone())
+        (
+            settings.active_whisper_model.clone(),
+            settings.custom_model_path.clone(),
+        )
     };
 
     if let Some(ref custom) = custom_path {
@@ -76,8 +79,8 @@ pub async fn download_model(app: AppHandle, file_name: String) -> Result<String,
 
     let total_size = response.content_length().unwrap_or(0);
     let temp_path = model_path.with_extension("bin.tmp");
-    let mut file =
-        std::fs::File::create(&temp_path).map_err(|e| format!("Failed to create temp file: {}", e))?;
+    let mut file = std::fs::File::create(&temp_path)
+        .map_err(|e| format!("Failed to create temp file: {}", e))?;
 
     let mut downloaded: u64 = 0;
     let mut stream = response.bytes_stream();
@@ -127,7 +130,10 @@ pub fn delete_model(app: AppHandle, file_name: String) -> Result<(), String> {
 pub fn init_whisper(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
     let (active_model, custom_path) = {
         let settings = state.settings.safe_read()?;
-        (settings.active_whisper_model.clone(), settings.custom_model_path.clone())
+        (
+            settings.active_whisper_model.clone(),
+            settings.custom_model_path.clone(),
+        )
     };
 
     let model_path = if let Some(ref custom) = custom_path {
@@ -138,10 +144,7 @@ pub fn init_whisper(app: AppHandle, state: State<'_, AppState>) -> Result<(), St
     };
 
     if !model_path.exists() {
-        return Err(format!(
-            "Model not found at: {}",
-            model_path.display()
-        ));
+        return Err(format!("Model not found at: {}", model_path.display()));
     }
 
     let ctx = WhisperContext::new_with_params(
@@ -336,8 +339,8 @@ fn transcribe_file_sync(
                 .full_get_segment_t1(i)
                 .map_err(|e| format!("Failed to get segment end: {}", e))?;
 
-            let start_ms = (start_time as i64) * 10 + time_offset_ms;
-            let end_ms = (end_time as i64) * 10 + time_offset_ms;
+            let start_ms = start_time * 10 + time_offset_ms;
+            let end_ms = end_time * 10 + time_offset_ms;
 
             let trimmed = text.trim().to_string();
             if !trimmed.is_empty() {

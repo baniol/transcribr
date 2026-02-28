@@ -10,11 +10,7 @@ import {
   isWhisperReady,
   transcribeFile,
 } from "../api/transcription";
-import type {
-  WhisperModel,
-  DownloadProgress,
-  TranscriptionResult,
-} from "../types";
+import type { WhisperModel, DownloadProgress, TranscriptionResult } from "../types";
 
 interface ModelWithStatus extends WhisperModel {
   downloaded: boolean;
@@ -50,12 +46,9 @@ export function useWhisperModels() {
 
   useEffect(() => {
     const setupListener = async () => {
-      const unlisten = await listen<DownloadProgress>(
-        "model-download-progress",
-        (event) => {
-          setDownloadProgress(event.payload.percent);
-        }
-      );
+      const unlisten = await listen<DownloadProgress>("model-download-progress", (event) => {
+        setDownloadProgress(event.payload.percent);
+      });
       return unlisten;
     };
 
@@ -142,10 +135,7 @@ export function useTranscription() {
   }, []);
 
   const transcribe = useCallback(
-    async (
-      filePath: string,
-      language?: string
-    ): Promise<TranscriptionResult> => {
+    async (filePath: string, language?: string): Promise<TranscriptionResult> => {
       try {
         setTranscribing(true);
         setError(null);
@@ -157,8 +147,7 @@ export function useTranscription() {
         const result = await transcribeFile(filePath, language);
         return result;
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Transcription failed";
+        const message = err instanceof Error ? err.message : "Transcription failed";
         setError(message);
         throw err;
       } finally {

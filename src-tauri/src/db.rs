@@ -1,9 +1,9 @@
 use rusqlite::Connection;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::models::AppSettings;
 
-pub fn get_db_path(app_data_dir: &PathBuf) -> PathBuf {
+pub fn get_db_path(app_data_dir: &Path) -> PathBuf {
     app_data_dir.join("transcribr.db")
 }
 

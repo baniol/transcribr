@@ -31,11 +31,14 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
     setSeekTo({ timeMs, id: seekIdRef.current });
   }, []);
 
-  const handleSegmentUpdate = useCallback(async (id: number, text: string) => {
-    await updateSegmentText(id, text);
-    await refresh();
-    showToast("Segment updated", "success");
-  }, [refresh, showToast]);
+  const handleSegmentUpdate = useCallback(
+    async (id: number, text: string) => {
+      await updateSegmentText(id, text);
+      await refresh();
+      showToast("Segment updated", "success");
+    },
+    [refresh, showToast]
+  );
 
   const handleEditTitle = useCallback(() => {
     if (note) {
@@ -52,7 +55,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
       await refresh();
       setEditingTitle(false);
       showToast("Title updated", "success");
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to update title", "error");
     }
   }, [note, newTitle, refresh, showToast]);
@@ -64,7 +67,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
       await deleteNote(note.id);
       showToast("Note deleted", "success");
       onBack();
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to delete note", "error");
     }
   }, [note, onBack, showToast]);
@@ -75,7 +78,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
     try {
       await navigator.clipboard.writeText(note.fullText);
       showToast("Text copied to clipboard", "success");
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to copy text", "error");
     }
   }, [note, showToast]);
@@ -89,12 +92,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
       <div className="h-full flex flex-col">
         <header className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
           <Button variant="ghost" onClick={onBack}>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -103,9 +101,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
               />
             </svg>
           </Button>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            Note not found
-          </h1>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Note not found</h1>
         </header>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-red-500">{error || "Note not found"}</p>
@@ -118,12 +114,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
     <div className="h-full flex flex-col">
       <header className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
         <Button variant="ghost" onClick={onBack}>
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -148,11 +139,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
             <Button size="sm" onClick={handleSaveTitle}>
               Save
             </Button>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => setEditingTitle(false)}
-            >
+            <Button size="sm" variant="secondary" onClick={() => setEditingTitle(false)}>
               Cancel
             </Button>
           </div>
@@ -179,14 +166,11 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
       <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-800/50 text-sm text-gray-600 dark:text-gray-400">
         {note.durationSeconds && (
           <span>
-            Duration:{" "}
-            {Math.floor(note.durationSeconds / 60)}:
+            Duration: {Math.floor(note.durationSeconds / 60)}:
             {(note.durationSeconds % 60).toString().padStart(2, "0")}
           </span>
         )}
-        {note.language && (
-          <span>Language: {note.language.toUpperCase()}</span>
-        )}
+        {note.language && <span>Language: {note.language.toUpperCase()}</span>}
         <span>Segments: {note.segments.length}</span>
       </div>
 
@@ -222,19 +206,13 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
           />
         ) : (
           <div className="prose dark:prose-invert max-w-none">
-            <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-              {note.fullText}
-            </p>
+            <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{note.fullText}</p>
           </div>
         )}
       </div>
 
       {note.audioPath && (
-        <AudioPlayer
-          ref={audioPlayerRef}
-          audioPath={note.audioPath}
-          seekTo={seekTo}
-        />
+        <AudioPlayer ref={audioPlayerRef} audioPath={note.audioPath} seekTo={seekTo} />
       )}
 
       <Dialog
@@ -244,14 +222,10 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
         size="sm"
       >
         <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Are you sure you want to delete "{note.title}"? This action cannot be
-          undone.
+          Are you sure you want to delete "{note.title}"? This action cannot be undone.
         </p>
         <div className="flex justify-end gap-3">
-          <Button
-            variant="secondary"
-            onClick={() => setDeleteDialogOpen(false)}
-          >
+          <Button variant="secondary" onClick={() => setDeleteDialogOpen(false)}>
             Cancel
           </Button>
           <Button variant="danger" onClick={handleDelete}>

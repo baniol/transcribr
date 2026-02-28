@@ -19,10 +19,7 @@ interface PendingTranscription {
   language: string;
 }
 
-export function NotesListView({
-  onNoteClick,
-  onSettingsClick,
-}: NotesListViewProps) {
+export function NotesListView({ onNoteClick, onSettingsClick }: NotesListViewProps) {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [transcribingFile, setTranscribingFile] = useState<string | null>(null);
@@ -43,12 +40,7 @@ export function NotesListView({
   );
 
   const handleStartTranscription = useCallback(
-    async (
-      filePath: string,
-      fileName: string,
-      title: string,
-      language: string
-    ) => {
+    async (filePath: string, fileName: string, title: string, language: string) => {
       setTranscribingFile(fileName);
       pendingRef.current = { title, fileName, language };
       cancelledRef.current = false;
@@ -65,9 +57,7 @@ export function NotesListView({
 
         // Create note (even if cancelled - partial results)
         if (result.segments.length > 0) {
-          const noteTitle = cancelledRef.current
-            ? `${title} (partial)`
-            : title;
+          const noteTitle = cancelledRef.current ? `${title} (partial)` : title;
 
           const noteId = await create(
             noteTitle,
@@ -79,10 +69,7 @@ export function NotesListView({
           );
 
           if (cancelledRef.current) {
-            showToast(
-              `Saved ${result.segments.length} segments (partial)`,
-              "info"
-            );
+            showToast(`Saved ${result.segments.length} segments (partial)`, "info");
             await refresh();
           } else {
             showToast("Transcription completed", "success");
@@ -93,10 +80,7 @@ export function NotesListView({
         }
       } catch (err) {
         if (!cancelledRef.current) {
-          showToast(
-            err instanceof Error ? err.message : "Transcription failed",
-            "error"
-          );
+          showToast(err instanceof Error ? err.message : "Transcription failed", "error");
         }
       } finally {
         setTranscribingFile(null);
@@ -113,18 +97,11 @@ export function NotesListView({
   return (
     <div className="h-full flex flex-col">
       <header className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Transcribr
-        </h1>
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Transcribr</h1>
         <div className="flex items-center gap-2">
           <Button onClick={() => setUploadOpen(true)}>New Transcription</Button>
           <Button variant="ghost" onClick={onSettingsClick}>
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -143,20 +120,11 @@ export function NotesListView({
       </header>
 
       <div className="p-4">
-        <Input
-          placeholder="Search notes..."
-          value={searchQuery}
-          onChange={handleSearch}
-        />
+        <Input placeholder="Search notes..." value={searchQuery} onChange={handleSearch} />
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 pt-0">
-        <NotesList
-          notes={notes}
-          loading={loading}
-          error={error}
-          onNoteClick={onNoteClick}
-        />
+        <NotesList notes={notes} loading={loading} error={error} onNoteClick={onNoteClick} />
       </div>
 
       <UploadDialog
@@ -166,10 +134,7 @@ export function NotesListView({
       />
 
       {transcribingFile && (
-        <TranscriptionProgress
-          fileName={transcribingFile}
-          onCancel={handleCancel}
-        />
+        <TranscriptionProgress fileName={transcribingFile} onCancel={handleCancel} />
       )}
     </div>
   );

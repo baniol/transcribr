@@ -88,20 +88,14 @@ fn load_with_symphonia(path: &Path) -> Result<Vec<f32>, String> {
         .map_err(|e| format!("Failed to probe audio format: {}", e))?;
 
     let mut format = probed.format;
-    let track = format
-        .default_track()
-        .ok_or("No audio track found")?;
+    let track = format.default_track().ok_or("No audio track found")?;
 
     let track_id = track.id;
     let sample_rate = track
         .codec_params
         .sample_rate
         .ok_or("Unknown sample rate")?;
-    let channels = track
-        .codec_params
-        .channels
-        .map(|c| c.count())
-        .unwrap_or(1);
+    let channels = track.codec_params.channels.map(|c| c.count()).unwrap_or(1);
 
     let decoder_opts = DecoderOptions::default();
     let mut decoder = symphonia::default::get_codecs()

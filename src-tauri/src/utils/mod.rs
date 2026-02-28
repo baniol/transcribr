@@ -1,2 +1,2 @@
-pub mod lock;
 pub mod audio;
+pub mod lock;

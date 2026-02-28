@@ -38,9 +38,7 @@ function formatDate(dateString: string): string {
 export function NoteCard({ note, onClick }: NoteCardProps) {
   return (
     <Card hoverable className="p-4" onClick={onClick}>
-      <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-        {note.title}
-      </h3>
+      <h3 className="font-medium text-gray-900 dark:text-gray-100 truncate">{note.title}</h3>
       <div className="flex items-center gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
         <span>{formatDate(note.createdAt)}</span>
         {note.durationSeconds && (

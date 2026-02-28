@@ -6,20 +6,13 @@ interface SelectOption {
   label: string;
 }
 
-interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "children"> {
   label?: string;
   options: SelectOption[];
   error?: string;
 }
 
-export function Select({
-  label,
-  options,
-  error,
-  className,
-  id,
-  ...props
-}: SelectProps) {
+export function Select({ label, options, error, className, id, ...props }: SelectProps) {
   const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
   return (

@@ -52,7 +52,7 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
     try {
       await onUpdate(segment.id, text);
       setEditing(false);
-    } catch (err) {
+    } catch (_err) {
       setText(segment.text);
     } finally {
       setSaving(false);
@@ -103,9 +103,7 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
           </div>
         </div>
       ) : (
-        <p className="text-sm text-gray-900 dark:text-gray-100 flex-1">
-          {segment.text}
-        </p>
+        <p className="text-sm text-gray-900 dark:text-gray-100 flex-1">{segment.text}</p>
       )}
       {!editing && onUpdate && (
         <button
@@ -115,7 +113,12 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
           title="Edytuj"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+            />
           </svg>
         </button>
       )}
@@ -125,11 +128,7 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
 
 export function SegmentList({ segments, onTimestampClick, onSegmentUpdate }: SegmentListProps) {
   if (segments.length === 0) {
-    return (
-      <p className="text-gray-500 dark:text-gray-400 text-center py-4">
-        No segments
-      </p>
-    );
+    return <p className="text-gray-500 dark:text-gray-400 text-center py-4">No segments</p>;
   }
 
   return (

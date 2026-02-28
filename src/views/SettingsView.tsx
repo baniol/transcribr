@@ -12,12 +12,7 @@ export function SettingsView({ onBack }: SettingsViewProps) {
     <div className="h-full flex flex-col">
       <header className="flex items-center gap-3 p-4 border-b border-gray-200 dark:border-gray-700">
         <Button variant="ghost" onClick={onBack}>
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -26,16 +21,12 @@ export function SettingsView({ onBack }: SettingsViewProps) {
             />
           </svg>
         </Button>
-        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-          Settings
-        </h1>
+        <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Settings</h1>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         <Card className="p-4">
-          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-            Language
-          </h2>
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Language</h2>
           <LanguageSettings />
         </Card>
 

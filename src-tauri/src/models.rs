@@ -68,6 +68,7 @@ pub struct WhisperModelDef {
 }
 
 impl WhisperModelDef {
+    #[allow(dead_code)]
     pub fn to_model(&self) -> WhisperModel {
         WhisperModel {
             name: self.name.to_string(),
@@ -90,11 +91,11 @@ pub struct DownloadProgress {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TranscriptionProgress {
-    pub phase: String,           // "loading", "transcribing"
+    pub phase: String, // "loading", "transcribing"
     pub processed_chunks: u32,
     pub total_chunks: u32,
-    pub chunk_progress: i32,     // 0-100 progress within current chunk
-    pub percent: f32,            // overall progress
+    pub chunk_progress: i32, // 0-100 progress within current chunk
+    pub percent: f32,        // overall progress
     pub current_segments: u32,
 }
 

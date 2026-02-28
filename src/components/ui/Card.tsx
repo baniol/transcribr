@@ -5,12 +5,7 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hoverable?: boolean;
 }
 
-export function Card({
-  children,
-  className,
-  hoverable = false,
-  ...props
-}: CardProps) {
+export function Card({ children, className, hoverable = false, ...props }: CardProps) {
   return (
     <div
       className={twMerge(

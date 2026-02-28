@@ -23,21 +23,11 @@ function AppContent() {
 
   switch (viewState.view) {
     case "note-detail":
-      return (
-        <NoteDetailView
-          noteId={viewState.noteId!}
-          onBack={handleBack}
-        />
-      );
+      return <NoteDetailView noteId={viewState.noteId!} onBack={handleBack} />;
     case "settings":
       return <SettingsView onBack={handleBack} />;
     default:
-      return (
-        <NotesListView
-          onNoteClick={handleNoteClick}
-          onSettingsClick={handleSettingsClick}
-        />
-      );
+      return <NotesListView onNoteClick={handleNoteClick} onSettingsClick={handleSettingsClick} />;
   }
 }
 

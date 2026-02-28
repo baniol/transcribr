@@ -27,10 +27,7 @@ export async function createNote(
   });
 }
 
-export async function updateNoteTitle(
-  id: number,
-  title: string
-): Promise<void> {
+export async function updateNoteTitle(id: number, title: string): Promise<void> {
   return invoke<void>("update_note_title", { id, title });
 }
 
@@ -38,10 +35,7 @@ export async function deleteNote(id: number): Promise<void> {
   return invoke<void>("delete_note", { id });
 }
 
-export async function updateSegmentText(
-  id: number,
-  text: string
-): Promise<void> {
+export async function updateSegmentText(id: number, text: string): Promise<void> {
   return invoke<void>("update_segment_text", { id, text });
 }
 

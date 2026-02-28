@@ -25,7 +25,7 @@ export function LanguageSettings() {
     try {
       await updateSettings("transcriptionLanguage", e.target.value);
       showToast("Language setting saved", "success");
-    } catch (err) {
+    } catch (_err) {
       showToast("Failed to save language setting", "error");
     }
   };
@@ -33,8 +33,8 @@ export function LanguageSettings() {
   return (
     <div>
       <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-        Set the default language for transcription. "Auto-detect" will
-        automatically identify the spoken language.
+        Set the default language for transcription. "Auto-detect" will automatically identify the
+        spoken language.
       </div>
 
       <Select

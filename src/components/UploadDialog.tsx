@@ -32,11 +32,7 @@ const LANGUAGE_OPTIONS = [
   { value: "zh", label: "Chinese" },
 ];
 
-export function UploadDialog({
-  open: isOpen,
-  onClose,
-  onStartTranscription,
-}: UploadDialogProps) {
+export function UploadDialog({ open: isOpen, onClose, onStartTranscription }: UploadDialogProps) {
   const [filePath, setFilePath] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [title, setTitle] = useState("");
@@ -101,9 +97,7 @@ export function UploadDialog({
             onClick={handleSelectFile}
           >
             {filePath ? (
-              <div className="text-sm text-gray-900 dark:text-gray-100">
-                {fileName}
-              </div>
+              <div className="text-sm text-gray-900 dark:text-gray-100">{fileName}</div>
             ) : (
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Click to select audio file
@@ -132,10 +126,7 @@ export function UploadDialog({
           <Button variant="secondary" onClick={handleClose}>
             Cancel
           </Button>
-          <Button
-            onClick={handleTranscribe}
-            disabled={!filePath || !title.trim()}
-          >
+          <Button onClick={handleTranscribe} disabled={!filePath || !title.trim()}>
             Transcribe
           </Button>
         </div>

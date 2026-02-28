@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { getSettings, updateSetting } from "../api/settings";
 import type { AppSettings } from "../types";
 
@@ -37,24 +30,19 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     refreshSettings();
   }, [refreshSettings]);
 
-  const updateSettings = useCallback(
-    async (key: keyof AppSettings, value: string) => {
-      const keyMap: Record<keyof AppSettings, string> = {
-        transcriptionLanguage: "transcription_language",
-        activeWhisperModel: "active_whisper_model",
-        customModelPath: "custom_model_path",
-      };
+  const updateSettings = useCallback(async (key: keyof AppSettings, value: string) => {
+    const keyMap: Record<keyof AppSettings, string> = {
+      transcriptionLanguage: "transcription_language",
+      activeWhisperModel: "active_whisper_model",
+      customModelPath: "custom_model_path",
+    };
 
-      await updateSetting(keyMap[key], value);
-      setSettings((prev) => (prev ? { ...prev, [key]: value } : null));
-    },
-    []
-  );
+    await updateSetting(keyMap[key], value);
+    setSettings((prev) => (prev ? { ...prev, [key]: value } : null));
+  }, []);
 
   return (
-    <SettingsContext.Provider
-      value={{ settings, loading, updateSettings, refreshSettings }}
-    >
+    <SettingsContext.Provider value={{ settings, loading, updateSettings, refreshSettings }}>
       {children}
     </SettingsContext.Provider>
   );
