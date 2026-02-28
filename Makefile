@@ -2,7 +2,7 @@
        lint lint-fix format format-check type-check \
        rust-check rust-clippy rust-fmt rust-fmt-check rust-test \
        test test-watch test-coverage \
-       check-all clean db-reset \
+       check-all clean db-reset nuke \
        l lf f fc t tc ca
 
 # Default target
@@ -91,6 +91,15 @@ clean: ## Clean build artifacts
 db-reset: ## Delete the local SQLite database
 	rm -f ~/Library/Application\ Support/com.marcinbaniowski.transcribr/transcribr.db
 	@echo "Database deleted. It will be recreated on next launch."
+
+APP_ID := com.marcinbaniowski.transcribr
+
+nuke: ## Remove all app data (database, models, caches, logs)
+	rm -rf ~/Library/Application\ Support/$(APP_ID)
+	rm -rf ~/Library/Caches/$(APP_ID)
+	rm -rf ~/Library/Logs/$(APP_ID)
+	rm -rf ~/Library/WebKit/$(APP_ID)
+	@echo "All app data removed."
 
 # ─── Short Aliases ────────────────────────────────────────────────────────────
 
