@@ -8,6 +8,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  # Disable GGML_NATIVE auto-detection to avoid i8mm compile errors on ARM runners
+  SOURCE_DATE_EPOCH: 1
 
 jobs:
   security-audit:
@@ -58,8 +60,6 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install system dependencies
-        run: brew install cmake
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -84,8 +84,6 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install system dependencies
-        run: brew install cmake
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cargo cache
@@ -106,8 +104,6 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install system dependencies
-        run: brew install cmake
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
