@@ -45,6 +45,13 @@ export async function updateSegmentText(
   return invoke<void>("update_segment_text", { id, text });
 }
 
+export async function updateNoteFullText(
+  id: number,
+  fullText: string
+): Promise<void> {
+  return invoke<void>("update_note_full_text", { id, fullText });
+}
+
 export async function searchNotes(query: string): Promise<Note[]> {
   return invoke<Note[]>("search_notes", { query });
 }

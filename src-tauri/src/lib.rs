@@ -53,6 +53,7 @@ pub fn run() {
             notes::create_note,
             notes::update_note_title,
             notes::update_segment_text,
+            notes::update_note_full_text,
             notes::delete_note,
             notes::search_notes,
         ])

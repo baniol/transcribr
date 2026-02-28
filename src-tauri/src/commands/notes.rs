@@ -156,6 +156,35 @@ pub fn update_segment_text(
 }
 
 #[tauri::command]
+pub fn update_note_full_text(
+    id: i64,
+    full_text: String,
+    db: State<'_, Mutex<Connection>>,
+) -> Result<(), String> {
+    let conn = db.lock().map_err(|e| format!("DB lock error: {}", e))?;
+
+    // Delete existing segments for this note
+    conn.execute("DELETE FROM segments WHERE note_id = ?1", [id])
+        .map_err(|e| format!("Delete segments error: {}", e))?;
+
+    // Insert a single segment with the full text
+    conn.execute(
+        "INSERT INTO segments (note_id, text, start_ms, end_ms) VALUES (?1, ?2, 0, 0)",
+        rusqlite::params![id, full_text],
+    )
+    .map_err(|e| format!("Insert segment error: {}", e))?;
+
+    // Update the note's updated_at timestamp
+    conn.execute(
+        "UPDATE notes SET updated_at = datetime('now') WHERE id = ?1",
+        [id],
+    )
+    .map_err(|e| format!("Update error: {}", e))?;
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn delete_note(id: i64, db: State<'_, Mutex<Connection>>) -> Result<(), String> {
     let conn = db.lock().map_err(|e| format!("DB lock error: {}", e))?;
 

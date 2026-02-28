@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 import { PageSpinner } from "../components/ui/Spinner";
@@ -6,7 +6,7 @@ import { Dialog } from "../components/ui/Dialog";
 import { SegmentList } from "../components/notes/SegmentList";
 import { AudioPlayer, AudioPlayerRef } from "../components/AudioPlayer";
 import { useNote } from "../hooks/useNotes";
-import { updateNoteTitle, deleteNote, updateSegmentText } from "../api/notes";
+import { updateNoteTitle, deleteNote, updateSegmentText, updateNoteFullText } from "../api/notes";
 import { useToast } from "../contexts/ToastContext";
 
 interface NoteDetailViewProps {
@@ -22,6 +22,8 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
   const [newTitle, setNewTitle] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showSegments, setShowSegments] = useState(true);
+  const [editingFullText, setEditingFullText] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [seekTo, setSeekTo] = useState<{ timeMs: number; id: number } | undefined>(undefined);
   const seekIdRef = useRef(0);
   const audioPlayerRef = useRef<AudioPlayerRef>(null);
@@ -79,6 +81,40 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
       showToast("Failed to copy text", "error");
     }
   }, [note, showToast]);
+
+  const handleEditFullText = useCallback(() => {
+    if (!note) return;
+    setEditingFullText(true);
+  }, [note]);
+
+  // Set initial content when entering edit mode
+  useEffect(() => {
+    if (editingFullText && editorRef.current && note) {
+      editorRef.current.innerText = note.fullText || "";
+      editorRef.current.focus();
+    }
+  }, [editingFullText, note]);
+
+  const execCommand = useCallback((command: string, value?: string) => {
+    document.execCommand(command, false, value ?? null);
+  }, []);
+
+  const handleSaveFullText = useCallback(async () => {
+    if (!note || !editorRef.current) return;
+
+    const text = editorRef.current.innerText.trim();
+    if (!text) return;
+
+    try {
+      await updateNoteFullText(note.id, text);
+      await refresh();
+      setEditingFullText(false);
+      showToast("Full text updated", "success");
+    } catch (err) {
+      console.error("Error saving full text:", err);
+      showToast("Failed to update full text", "error");
+    }
+  }, [note, refresh, showToast]);
 
   if (loading) {
     return <PageSpinner />;
@@ -221,10 +257,90 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
             onSegmentUpdate={handleSegmentUpdate}
           />
         ) : (
-          <div className="prose dark:prose-invert max-w-none">
-            <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-              {note.fullText}
-            </p>
+          <div>
+            {editingFullText ? (
+              <div className="flex flex-col gap-2 h-full">
+                <div className="flex gap-1 flex-wrap border border-gray-300 dark:border-gray-600 rounded-t-md bg-gray-100 dark:bg-gray-800 px-2 py-1.5">
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm font-bold"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("bold"); }}
+                    title="Bold (Ctrl+B)"
+                  >
+                    B
+                  </button>
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm italic"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("italic"); }}
+                    title="Italic (Ctrl+I)"
+                  >
+                    I
+                  </button>
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm underline"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("underline"); }}
+                    title="Underline (Ctrl+U)"
+                  >
+                    U
+                  </button>
+                  <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("insertUnorderedList"); }}
+                    title="Bullet List"
+                  >
+                    &bull; List
+                  </button>
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("insertOrderedList"); }}
+                    title="Numbered List"
+                  >
+                    1. List
+                  </button>
+                  <span className="w-px bg-gray-300 dark:bg-gray-600 mx-1" />
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("indent"); }}
+                    title="Indent"
+                  >
+                    &rarr; Indent
+                  </button>
+                  <button
+                    className="px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 rounded text-sm"
+                    onMouseDown={(e) => { e.preventDefault(); execCommand("outdent"); }}
+                    title="Outdent"
+                  >
+                    &larr; Outdent
+                  </button>
+                </div>
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  className="flex-1 min-h-[24rem] p-3 border border-t-0 border-gray-300 dark:border-gray-600 rounded-b-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 outline-none overflow-y-auto whitespace-pre-wrap"
+                  suppressContentEditableWarning
+                />
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={handleSaveFullText}>Save Changes</Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setEditingFullText(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="prose dark:prose-invert max-w-none">
+                <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                  {note.fullText}
+                </p>
+                <div className="mt-4">
+                  <Button onClick={handleEditFullText}>
+                    Edit Full Text
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
