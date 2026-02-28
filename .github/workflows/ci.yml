@@ -58,6 +58,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: brew install cmake
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -82,6 +84,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: brew install cmake
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Cargo cache
@@ -102,6 +106,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: brew install cmake
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
