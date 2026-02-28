@@ -24,7 +24,7 @@ tokio = { version = "1", features = ["full"] }
 dirs = "5"
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1", features = ["v4"] }
-whisper-rs = { version = "0.14", features = ["metal"] }
+whisper-rs = { version = "0.15", features = ["metal"] }
 hound = "3.5"
 futures-util = "0.3"
 thiserror = "1.0"

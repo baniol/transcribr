@@ -322,25 +322,18 @@ fn transcribe_file_sync(
             .map_err(|e| format!("Transcription failed: {}", e))?;
 
         // Collect segments with timestamps
-        let num_segments = whisper_state
-            .full_n_segments()
-            .map_err(|e| format!("Failed to get segments: {}", e))?;
+        let num_segments = whisper_state.full_n_segments();
 
         for i in 0..num_segments {
-            let text = whisper_state
-                .full_get_segment_text(i)
+            let segment = whisper_state
+                .get_segment(i)
+                .ok_or_else(|| format!("Failed to get segment {}", i))?;
+
+            let text = segment
+                .to_str_lossy()
                 .map_err(|e| format!("Failed to get segment text: {}", e))?;
-
-            let start_time = whisper_state
-                .full_get_segment_t0(i)
-                .map_err(|e| format!("Failed to get segment start: {}", e))?;
-
-            let end_time = whisper_state
-                .full_get_segment_t1(i)
-                .map_err(|e| format!("Failed to get segment end: {}", e))?;
-
-            let start_ms = start_time * 10 + time_offset_ms;
-            let end_ms = end_time * 10 + time_offset_ms;
+            let start_ms = segment.start_timestamp() * 10 + time_offset_ms;
+            let end_ms = segment.end_timestamp() * 10 + time_offset_ms;
 
             let trimmed = text.trim().to_string();
             if !trimmed.is_empty() {
