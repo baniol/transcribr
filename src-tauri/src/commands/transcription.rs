@@ -365,6 +365,18 @@ fn transcribe_file_sync(
         );
     }
 
+    // Drop chunks to release borrow on samples (needed for move into diarization)
+    drop(chunks);
+
+    println!(
+        "Transcription loop complete: {} segments, {} chars of text",
+        all_segments.len(),
+        all_segments.iter().map(|s| s.text.len()).sum::<usize>()
+    );
+
+    // Release whisper context lock — diarization doesn't need it
+    drop(ctx_guard);
+
     // Run diarization if enabled and models are available
     let diarization_enabled = {
         let settings = state.settings.safe_read()?;
@@ -379,29 +391,42 @@ fn transcribe_file_sync(
         let emb_model_path = models_dir.join(DIARIZATION_MODELS[1].file_name);
 
         if seg_model_path.exists() && emb_model_path.exists() {
+            println!("Starting diarization...");
+
+            // Emit diarization phase so frontend shows progress
+            let _ = app.emit(
+                "transcription-progress",
+                TranscriptionProgress {
+                    phase: "diarizing".to_string(),
+                    processed_chunks: 0,
+                    total_chunks: 0,
+                    chunk_progress: 0,
+                    percent: 0.0,
+                    current_segments: all_segments.len() as u32,
+                },
+            );
+
             // Burn framework uses deep recursion; run on a thread with a large stack
             let app_clone = app.clone();
-            let samples_clone = samples.clone();
             let seg_path = seg_model_path.clone();
             let emb_path = emb_model_path.clone();
 
+            // Move samples instead of cloning to avoid duplicating the entire audio buffer
             const DIARIZATION_STACK_SIZE: usize = 64 * 1024 * 1024; // 64 MB
             let handle = std::thread::Builder::new()
                 .name("diarization".to_string())
                 .stack_size(DIARIZATION_STACK_SIZE)
                 .spawn(move || {
-                    diarization::run_diarization(
-                        &app_clone,
-                        &samples_clone,
-                        16000,
-                        &seg_path,
-                        &emb_path,
-                    )
+                    diarization::run_diarization(&app_clone, &samples, 16000, &seg_path, &emb_path)
                 })
                 .map_err(|e| format!("Failed to spawn diarization thread: {}", e))?;
 
             match handle.join() {
                 Ok(Ok(diar_segments)) => {
+                    println!(
+                        "Diarization complete: {} speaker segments",
+                        diar_segments.len()
+                    );
                     diarization::merge_speakers(&mut all_segments, &diar_segments);
                 }
                 Ok(Err(e)) => {
@@ -422,6 +447,13 @@ fn transcribe_file_sync(
         .map(|s| s.text.as_str())
         .collect::<Vec<_>>()
         .join(" ");
+
+    println!(
+        "Returning result: {} segments, {} chars, {:.1}s duration",
+        all_segments.len(),
+        full_text.len(),
+        duration_seconds
+    );
 
     Ok(TranscriptionResult {
         segments: all_segments,

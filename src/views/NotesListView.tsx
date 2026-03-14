@@ -77,6 +77,8 @@ export function NotesListView({ onNoteClick, onSettingsClick }: NotesListViewPro
           }
         } else if (cancelledRef.current) {
           showToast("Cancelled - no segments to save", "info");
+        } else {
+          showToast("No speech detected in audio", "info");
         }
       } catch (err) {
         if (!cancelledRef.current) {
