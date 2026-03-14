@@ -1,0 +1,10 @@
+# Ignored advisories for cargo-audit
+# https://doc.rust-lang.org/cargo/commands/cargo-audit.html
+
+[advisories]
+ignore = [
+    # lru 0.12.5 - IterMut Stacked Borrows violation
+    # Transitive dep via native-pyannote-rs -> burn -> ratatui
+    # We don't use lru's IterMut directly; waiting for upstream update
+    "RUSTSEC-2026-0002",
+]
