@@ -63,7 +63,7 @@ pub fn get_note(id: i64, db: State<'_, Mutex<Connection>>) -> Result<NoteWithSeg
         .map_err(|e| format!("Note not found: {}", e))?;
 
     let mut stmt = conn
-        .prepare("SELECT id, note_id, text, start_ms, end_ms FROM segments WHERE note_id = ?1 ORDER BY start_ms")
+        .prepare("SELECT id, note_id, text, start_ms, end_ms, speaker_label FROM segments WHERE note_id = ?1 ORDER BY start_ms")
         .map_err(|e| format!("Query error: {}", e))?;
 
     let segments: Vec<Segment> = stmt
@@ -74,6 +74,7 @@ pub fn get_note(id: i64, db: State<'_, Mutex<Connection>>) -> Result<NoteWithSeg
                 text: row.get(2)?,
                 start_ms: row.get(3)?,
                 end_ms: row.get(4)?,
+                speaker_label: row.get(5)?,
             })
         })
         .map_err(|e| format!("Query error: {}", e))?
@@ -119,8 +120,8 @@ pub fn create_note(
 
     for segment in segments {
         conn.execute(
-            "INSERT INTO segments (note_id, text, start_ms, end_ms) VALUES (?1, ?2, ?3, ?4)",
-            rusqlite::params![note_id, segment.text, segment.start_ms, segment.end_ms],
+            "INSERT INTO segments (note_id, text, start_ms, end_ms, speaker_label) VALUES (?1, ?2, ?3, ?4, ?5)",
+            rusqlite::params![note_id, segment.text, segment.start_ms, segment.end_ms, segment.speaker_label],
         )
         .map_err(|e| format!("Insert segment error: {}", e))?;
     }

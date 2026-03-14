@@ -3,7 +3,7 @@ import { stripHtml, computeSegmentChanges, replaceSegmentTextInHtml } from "./se
 import type { Segment } from "../types";
 
 function seg(id: number, text: string, startMs = 0, endMs = 1000): Segment {
-  return { id, noteId: 1, text, startMs, endMs };
+  return { id, noteId: 1, text, startMs, endMs, speakerLabel: null };
 }
 
 describe("stripHtml", () => {

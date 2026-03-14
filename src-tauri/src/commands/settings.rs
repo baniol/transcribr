@@ -30,6 +30,7 @@ pub fn update_setting(
         "custom_model_path" => {
             settings.custom_model_path = if value.is_empty() { None } else { Some(value) };
         }
+        "diarization_enabled" => settings.diarization_enabled = value == "true",
         _ => return Err(format!("Unknown setting key: {}", key)),
     }
 

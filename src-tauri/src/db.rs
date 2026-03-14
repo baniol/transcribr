@@ -60,6 +60,24 @@ pub fn init_db(conn: &Connection) -> Result<(), String> {
             .map_err(|e| format!("Failed to add full_text column: {}", e))?;
     }
 
+    // Migration: add speaker_label column to segments (idempotent)
+    let has_speaker_label: bool = conn
+        .prepare("PRAGMA table_info(segments)")
+        .map(|mut stmt| {
+            let cols: Vec<String> = stmt
+                .query_map([], |row| row.get::<_, String>(1))
+                .unwrap()
+                .filter_map(Result::ok)
+                .collect();
+            cols.contains(&"speaker_label".to_string())
+        })
+        .unwrap_or(false);
+
+    if !has_speaker_label {
+        conn.execute("ALTER TABLE segments ADD COLUMN speaker_label TEXT", [])
+            .map_err(|e| format!("Failed to add speaker_label column: {}", e))?;
+    }
+
     Ok(())
 }
 
@@ -90,6 +108,14 @@ pub fn load_settings(conn: &Connection) -> AppSettings {
         if !value.is_empty() {
             settings.custom_model_path = Some(value);
         }
+    }
+
+    if let Ok(value) = conn.query_row(
+        "SELECT value FROM settings WHERE key = 'diarization_enabled'",
+        [],
+        |row| row.get::<_, String>(0),
+    ) {
+        settings.diarization_enabled = value == "true";
     }
 
     settings

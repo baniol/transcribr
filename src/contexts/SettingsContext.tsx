@@ -35,6 +35,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       transcriptionLanguage: "transcription_language",
       activeWhisperModel: "active_whisper_model",
       customModelPath: "custom_model_path",
+      diarizationEnabled: "diarization_enabled",
     };
 
     await updateSetting(keyMap[key], value);

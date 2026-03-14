@@ -21,6 +21,7 @@ pub struct Segment {
     pub text: String,
     pub start_ms: i64,
     pub end_ms: i64,
+    pub speaker_label: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,6 +47,7 @@ pub struct TranscriptionSegment {
     pub text: String,
     pub start_ms: i64,
     pub end_ms: i64,
+    pub speaker_label: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -99,7 +101,7 @@ pub struct DownloadProgress {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TranscriptionProgress {
-    pub phase: String, // "loading", "transcribing"
+    pub phase: String, // "loading", "transcribing", "diarizing"
     pub processed_chunks: u32,
     pub total_chunks: u32,
     pub chunk_progress: i32, // 0-100 progress within current chunk
@@ -113,6 +115,7 @@ pub struct AppSettings {
     pub transcription_language: String,
     pub active_whisper_model: String,
     pub custom_model_path: Option<String>,
+    pub diarization_enabled: bool,
 }
 
 impl AppSettings {
@@ -121,6 +124,7 @@ impl AppSettings {
             transcription_language: "auto".to_string(),
             active_whisper_model: "ggml-base.bin".to_string(),
             custom_model_path: None,
+            diarization_enabled: false,
         }
     }
 }
@@ -167,5 +171,52 @@ pub const AVAILABLE_MODELS: &[WhisperModelDef] = &[
         size_mb: 3095,
         url: "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin",
         description: "Latest large model, may have regressions for some languages",
+    },
+];
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DiarizationModel {
+    pub name: String,
+    pub file_name: String,
+    pub size_mb: u32,
+    pub url: String,
+    pub description: String,
+}
+
+pub struct DiarizationModelDef {
+    pub name: &'static str,
+    pub file_name: &'static str,
+    pub size_mb: u32,
+    pub url: &'static str,
+    pub description: &'static str,
+}
+
+impl DiarizationModelDef {
+    pub fn to_model(&self) -> DiarizationModel {
+        DiarizationModel {
+            name: self.name.to_string(),
+            file_name: self.file_name.to_string(),
+            size_mb: self.size_mb,
+            url: self.url.to_string(),
+            description: self.description.to_string(),
+        }
+    }
+}
+
+pub const DIARIZATION_MODELS: &[DiarizationModelDef] = &[
+    DiarizationModelDef {
+        name: "Segmentation",
+        file_name: "segmentation-3.0.bpk",
+        size_mb: 6,
+        url: "https://github.com/RustedBytes/pyannote-rs/raw/main/src/nn/segmentation/model.bpk",
+        description: "Pyannote segmentation model for speaker detection",
+    },
+    DiarizationModelDef {
+        name: "Speaker Embedding",
+        file_name: "wespeaker-voxceleb-resnet34.bpk",
+        size_mb: 28,
+        url: "https://github.com/RustedBytes/pyannote-rs/raw/main/src/nn/speaker_identification/model.bpk",
+        description: "Voice embedding model for speaker identification",
     },
 ];

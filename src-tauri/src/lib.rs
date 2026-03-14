@@ -8,7 +8,7 @@ use rusqlite::Connection;
 use std::sync::Mutex;
 use tauri::Manager;
 
-use commands::{notes, settings, transcription};
+use commands::{diarization, notes, settings, transcription};
 use db::{get_db_path, init_db, load_settings};
 use state::new_app_state;
 
@@ -60,6 +60,11 @@ pub fn run() {
             notes::save_full_text_with_segments,
             notes::delete_note,
             notes::search_notes,
+            // Diarization
+            diarization::get_diarization_models,
+            diarization::is_diarization_model_downloaded,
+            diarization::download_diarization_model,
+            diarization::delete_diarization_model,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -15,6 +15,7 @@ export interface Segment {
   text: string;
   startMs: number;
   endMs: number;
+  speakerLabel: string | null;
 }
 
 export interface NoteWithSegments extends Note {
@@ -32,6 +33,7 @@ export interface TranscriptionSegment {
   text: string;
   startMs: number;
   endMs: number;
+  speakerLabel: string | null;
 }
 
 export interface TranscriptionResult {
@@ -55,7 +57,7 @@ export interface DownloadProgress {
 }
 
 export interface TranscriptionProgress {
-  phase: "loading" | "transcribing";
+  phase: "loading" | "transcribing" | "diarizing";
   processedChunks: number;
   totalChunks: number;
   chunkProgress: number;
@@ -67,6 +69,15 @@ export interface AppSettings {
   transcriptionLanguage: string;
   activeWhisperModel: string;
   customModelPath: string | null;
+  diarizationEnabled: boolean;
+}
+
+export interface DiarizationModel {
+  name: string;
+  fileName: string;
+  sizeMb: number;
+  url: string;
+  description: string;
 }
 
 export type ViewType = "notes" | "note-detail" | "settings";

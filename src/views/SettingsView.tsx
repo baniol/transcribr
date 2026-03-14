@@ -2,6 +2,7 @@ import { Button } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
 import { WhisperSettings } from "../components/settings/WhisperSettings";
 import { LanguageSettings } from "../components/settings/LanguageSettings";
+import { DiarizationSettings } from "../components/settings/DiarizationSettings";
 
 interface SettingsViewProps {
   onBack: () => void;
@@ -35,6 +36,13 @@ export function SettingsView({ onBack }: SettingsViewProps) {
             Whisper Models
           </h2>
           <WhisperSettings />
+        </Card>
+
+        <Card className="p-4">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+            Speaker Diarization
+          </h2>
+          <DiarizationSettings />
         </Card>
       </div>
     </div>

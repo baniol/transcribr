@@ -4,9 +4,10 @@ use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager, State};
 use whisper_rs::{FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters};
 
+use crate::commands::diarization;
 use crate::models::{
     DownloadProgress, TranscriptionProgress, TranscriptionResult, TranscriptionSegment,
-    WhisperModel, AVAILABLE_MODELS,
+    WhisperModel, AVAILABLE_MODELS, DIARIZATION_MODELS,
 };
 use crate::state::AppState;
 use crate::utils::audio::{calculate_duration_seconds, load_audio_file};
@@ -341,6 +342,7 @@ fn transcribe_file_sync(
                     text: trimmed,
                     start_ms,
                     end_ms,
+                    speaker_label: None,
                 });
             }
         }
@@ -361,6 +363,58 @@ fn transcribe_file_sync(
                 current_segments: all_segments.len() as u32,
             },
         );
+    }
+
+    // Run diarization if enabled and models are available
+    let diarization_enabled = {
+        let settings = state.settings.safe_read()?;
+        settings.diarization_enabled
+    };
+
+    if diarization_enabled {
+        let app_data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+        let models_dir = app_data_dir.join("models");
+
+        let seg_model_path = models_dir.join(DIARIZATION_MODELS[0].file_name);
+        let emb_model_path = models_dir.join(DIARIZATION_MODELS[1].file_name);
+
+        if seg_model_path.exists() && emb_model_path.exists() {
+            // Burn framework uses deep recursion; run on a thread with a large stack
+            let app_clone = app.clone();
+            let samples_clone = samples.clone();
+            let seg_path = seg_model_path.clone();
+            let emb_path = emb_model_path.clone();
+
+            const DIARIZATION_STACK_SIZE: usize = 64 * 1024 * 1024; // 64 MB
+            let handle = std::thread::Builder::new()
+                .name("diarization".to_string())
+                .stack_size(DIARIZATION_STACK_SIZE)
+                .spawn(move || {
+                    diarization::run_diarization(
+                        &app_clone,
+                        &samples_clone,
+                        16000,
+                        &seg_path,
+                        &emb_path,
+                    )
+                })
+                .map_err(|e| format!("Failed to spawn diarization thread: {}", e))?;
+
+            match handle.join() {
+                Ok(Ok(diar_segments)) => {
+                    diarization::merge_speakers(&mut all_segments, &diar_segments);
+                }
+                Ok(Err(e)) => {
+                    eprintln!(
+                        "Diarization failed (continuing without speaker labels): {}",
+                        e
+                    );
+                }
+                Err(_) => {
+                    eprintln!("Diarization thread panicked (continuing without speaker labels)");
+                }
+            }
+        }
     }
 
     let full_text = all_segments

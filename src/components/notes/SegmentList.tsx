@@ -7,6 +7,23 @@ interface SegmentListProps {
   onSegmentUpdate?: (id: number, text: string) => Promise<void>;
 }
 
+const SPEAKER_COLORS = [
+  { bg: "bg-blue-100 dark:bg-blue-900/50", text: "text-blue-700 dark:text-blue-300" },
+  { bg: "bg-green-100 dark:bg-green-900/50", text: "text-green-700 dark:text-green-300" },
+  { bg: "bg-purple-100 dark:bg-purple-900/50", text: "text-purple-700 dark:text-purple-300" },
+  { bg: "bg-orange-100 dark:bg-orange-900/50", text: "text-orange-700 dark:text-orange-300" },
+  { bg: "bg-pink-100 dark:bg-pink-900/50", text: "text-pink-700 dark:text-pink-300" },
+  { bg: "bg-teal-100 dark:bg-teal-900/50", text: "text-teal-700 dark:text-teal-300" },
+  { bg: "bg-yellow-100 dark:bg-yellow-900/50", text: "text-yellow-700 dark:text-yellow-300" },
+  { bg: "bg-red-100 dark:bg-red-900/50", text: "text-red-700 dark:text-red-300" },
+];
+
+function getSpeakerColor(label: string) {
+  const match = label.match(/\d+/);
+  const idx = match ? (parseInt(match[0], 10) - 1) % SPEAKER_COLORS.length : 0;
+  return SPEAKER_COLORS[idx];
+}
+
 function formatTime(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000);
   const hours = Math.floor(totalSeconds / 3600);
@@ -73,6 +90,13 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
       >
         {formatTime(segment.startMs)}
       </button>
+      {segment.speakerLabel && (
+        <span
+          className={`text-xs px-1.5 py-0.5 rounded-full whitespace-nowrap font-medium ${getSpeakerColor(segment.speakerLabel).bg} ${getSpeakerColor(segment.speakerLabel).text}`}
+        >
+          {segment.speakerLabel}
+        </span>
+      )}
       {editing ? (
         <div className="flex-1 flex flex-col gap-2">
           <textarea

@@ -47,6 +47,7 @@ export function TranscriptionProgress({ fileName, onCancel }: TranscriptionProgr
     if (cancelling) return "Cancelling...";
     if (!progress) return "Starting...";
     if (progress.phase === "loading") return "Loading audio...";
+    if (progress.phase === "diarizing") return "Identifying speakers...";
     return "Transcribing...";
   };
 
@@ -54,6 +55,12 @@ export function TranscriptionProgress({ fileName, onCancel }: TranscriptionProgr
     if (!progress) return null;
     if (progress.phase === "loading") {
       return "Converting audio to required format...";
+    }
+    if (progress.phase === "diarizing") {
+      if (progress.totalChunks > 0) {
+        return `Analyzing voice patterns... ${Math.round(progress.percent)}%`;
+      }
+      return "Analyzing voice patterns...";
     }
     if (progress.totalChunks > 1) {
       return `Chunk ${progress.processedChunks + 1} / ${progress.totalChunks} (${progress.chunkProgress}%)`;
@@ -77,7 +84,11 @@ export function TranscriptionProgress({ fileName, onCancel }: TranscriptionProgr
 
           <div className="w-full mt-4">
             <ProgressBar
-              progress={progress?.phase === "transcribing" ? progress.percent : 0}
+              progress={
+                progress?.phase === "transcribing" || progress?.phase === "diarizing"
+                  ? progress.percent
+                  : 0
+              }
               indeterminate={!progress || progress.phase === "loading"}
             />
             {progress && (
