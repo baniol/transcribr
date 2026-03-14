@@ -23,8 +23,12 @@ make rust-fmt      # Format Rust code
 make test          # Run frontend tests
 make rust-test     # Run Rust tests
 make check-all     # Run all checks (format, lint, types, clippy, tests)
+make clean-all     # Clean everything including node_modules
 make db-reset      # Delete local SQLite database
+make icon          # Generate app icon (PRESET=default|dark|light|blue)
 ```
+
+Short aliases: `make l` (lint), `make lf` (lint-fix), `make f` (format), `make fc` (format-check), `make t` (test), `make tc` (test-coverage), `make ca` (check-all)
 
 ## Architecture
 
@@ -79,6 +83,10 @@ make db-reset      # Delete local SQLite database
 ### Database migrations
 - Add migration SQL in `db.rs` `initialize_database()` function
 - Migrations run on app startup
+
+## App Icon
+
+Generate app icons with `make icon`. Uses `scripts/generate-icon.py` (Python + Pillow) to create a microphone/waveform themed icon. Run `make icon-presets` to see color presets, or `make icon PRESET=dark` for a specific one. First run will create a `.venv` and install Pillow automatically.
 
 ## Git
 

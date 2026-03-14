@@ -2,8 +2,11 @@
        lint lint-fix format format-check type-check \
        rust-check rust-clippy rust-fmt rust-fmt-check rust-test \
        test test-watch test-coverage \
-       check-all clean db-reset nuke \
+       check-all clean clean-all db-reset nuke \
+       icon icon-install icon-presets \
        l lf f fc t tc ca
+
+PRESET ?= default
 
 # Default target
 help: ## Show this help message
@@ -78,15 +81,50 @@ test-coverage: ## Run tests with coverage
 
 # ─── Combined ─────────────────────────────────────────────────────────────────
 
-check-all: format-check lint type-check rust-fmt-check rust-clippy test ## Run all checks
+check-all: ## Run all checks (format, lint, types, clippy, tests)
 	@echo ""
-	@echo "All checks passed!"
+	@echo ">>> Prettier (format check)"
+	@$(MAKE) --no-print-directory format-check
+	@echo ""
+	@echo ">>> ESLint"
+	@$(MAKE) --no-print-directory lint
+	@echo ""
+	@echo ">>> TypeScript"
+	@$(MAKE) --no-print-directory type-check
+	@echo ""
+	@echo ">>> Rust fmt"
+	@$(MAKE) --no-print-directory rust-fmt-check
+	@echo ""
+	@echo ">>> Clippy"
+	@$(MAKE) --no-print-directory rust-clippy
+	@echo ""
+	@echo ">>> Frontend tests"
+	@$(MAKE) --no-print-directory test
+	@echo ""
+	@echo ">>> All checks passed!"
+
+# ─── App Icon ─────────────────────────────────────────────────────────────────
+
+.venv/bin/python3:
+	python3 -m venv .venv
+	.venv/bin/pip install -r scripts/requirements.txt
+
+icon-install: .venv/bin/python3 ## Install icon generation dependencies
+
+icon: .venv/bin/python3 ## Generate app icon (PRESET=default|dark|light|blue)
+	.venv/bin/python3 scripts/generate-icon.py --preset $(PRESET)
+
+icon-presets: .venv/bin/python3 ## List available icon presets
+	.venv/bin/python3 scripts/generate-icon.py --list-presets
 
 # ─── Maintenance ──────────────────────────────────────────────────────────────
 
 clean: ## Clean build artifacts
 	rm -rf dist/ node_modules/.vite/
 	cd src-tauri && cargo clean
+
+clean-all: clean ## Clean everything (including node_modules)
+	rm -rf node_modules/
 
 db-reset: ## Delete the local SQLite database
 	rm -f ~/Library/Application\ Support/com.marcinbaniowski.transcribr/transcribr.db

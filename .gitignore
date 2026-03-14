@@ -44,3 +44,8 @@ Thumbs.db
 
 # Session data
 opencode_sessions/
+
+# Icon generation
+icon_1024.png
+icons_generated/
+.venv/

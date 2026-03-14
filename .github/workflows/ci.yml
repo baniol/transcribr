@@ -21,9 +21,16 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-audit
         run: cargo install cargo-audit
-      - name: Run audit
+      - name: Cargo audit
         working-directory: src-tauri
         run: cargo audit
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+      - run: npm ci
+      - name: npm audit
+        run: npm audit --audit-level=moderate
 
   lint-frontend:
     name: Lint Frontend
@@ -64,14 +71,10 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-      - name: Cargo cache
-        uses: actions/cache@v4
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          workspaces: src-tauri
       - name: Check formatting
         working-directory: src-tauri
         run: cargo fmt -- --check
@@ -86,21 +89,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      - name: Cargo cache
-        uses: actions/cache@v4
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          workspaces: src-tauri
       - name: Run tests
         working-directory: src-tauri
         run: cargo test
 
   build:
     name: Build
-    needs: [lint-frontend, test-frontend, lint-backend, test-backend]
+    needs: [security-audit, lint-frontend, test-frontend, lint-backend, test-backend]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -110,14 +109,10 @@ jobs:
           cache: "npm"
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
-      - name: Cargo cache
-        uses: actions/cache@v4
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('src-tauri/Cargo.lock') }}
+          workspaces: src-tauri
       - run: npm ci
       - name: Build Tauri app
         run: npm run tauri build
