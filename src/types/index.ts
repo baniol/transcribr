@@ -20,6 +20,12 @@ export interface Segment {
 export interface NoteWithSegments extends Note {
   segments: Segment[];
   fullText: string;
+  fullTextStored: boolean;
+}
+
+export interface SegmentUpdate {
+  id: number;
+  text: string;
 }
 
 export interface TranscriptionSegment {

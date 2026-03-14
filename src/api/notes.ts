@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Note, NoteWithSegments, TranscriptionSegment } from "../types";
+import type { Note, NoteWithSegments, SegmentUpdate, TranscriptionSegment } from "../types";
 
 export async function getNotes(): Promise<Note[]> {
   return invoke<Note[]>("get_notes");
@@ -37,6 +37,18 @@ export async function deleteNote(id: number): Promise<void> {
 
 export async function updateSegmentText(id: number, text: string): Promise<void> {
   return invoke<void>("update_segment_text", { id, text });
+}
+
+export async function updateNoteFullText(id: number, fullText: string): Promise<void> {
+  return invoke<void>("update_note_full_text", { id, fullText });
+}
+
+export async function saveFullTextWithSegments(
+  id: number,
+  fullText: string,
+  segmentUpdates: SegmentUpdate[]
+): Promise<void> {
+  return invoke<void>("save_full_text_with_segments", { id, fullText, segmentUpdates });
 }
 
 export async function searchNotes(query: string): Promise<Note[]> {

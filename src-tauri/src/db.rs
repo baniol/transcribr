@@ -40,7 +40,27 @@ pub fn init_db(conn: &Connection) -> Result<(), String> {
         CREATE INDEX IF NOT EXISTS idx_segments_note_id ON segments(note_id);
         ",
     )
-    .map_err(|e| format!("Failed to initialize database: {}", e))
+    .map_err(|e| format!("Failed to initialize database: {}", e))?;
+
+    // Migration: add full_text column to notes (idempotent)
+    let has_full_text: bool = conn
+        .prepare("PRAGMA table_info(notes)")
+        .map(|mut stmt| {
+            let cols: Vec<String> = stmt
+                .query_map([], |row| row.get::<_, String>(1))
+                .unwrap()
+                .filter_map(Result::ok)
+                .collect();
+            cols.contains(&"full_text".to_string())
+        })
+        .unwrap_or(false);
+
+    if !has_full_text {
+        conn.execute("ALTER TABLE notes ADD COLUMN full_text TEXT", [])
+            .map_err(|e| format!("Failed to add full_text column: {}", e))?;
+    }
+
+    Ok(())
 }
 
 pub fn load_settings(conn: &Connection) -> AppSettings {

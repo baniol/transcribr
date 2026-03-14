@@ -30,6 +30,14 @@ pub struct NoteWithSegments {
     pub note: Note,
     pub segments: Vec<Segment>,
     pub full_text: String,
+    pub full_text_stored: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SegmentUpdate {
+    pub id: i64,
+    pub text: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

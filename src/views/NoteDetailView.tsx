@@ -4,9 +4,17 @@ import { Input } from "../components/ui/Input";
 import { PageSpinner } from "../components/ui/Spinner";
 import { Dialog } from "../components/ui/Dialog";
 import { SegmentList } from "../components/notes/SegmentList";
+import { FullTextEditor } from "../components/notes/FullTextEditor";
 import { AudioPlayer, AudioPlayerRef } from "../components/AudioPlayer";
 import { useNote } from "../hooks/useNotes";
-import { updateNoteTitle, deleteNote, updateSegmentText } from "../api/notes";
+import {
+  updateNoteTitle,
+  deleteNote,
+  updateSegmentText,
+  updateNoteFullText,
+  saveFullTextWithSegments,
+} from "../api/notes";
+import { stripHtml, computeSegmentChanges, replaceSegmentTextInHtml } from "../utils/segmentSync";
 import { useToast } from "../contexts/ToastContext";
 
 interface NoteDetailViewProps {
@@ -22,6 +30,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
   const [newTitle, setNewTitle] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [showSegments, setShowSegments] = useState(true);
+  const [editorVersion, setEditorVersion] = useState(0);
   const [seekTo, setSeekTo] = useState<{ timeMs: number; id: number } | undefined>(undefined);
   const seekIdRef = useRef(0);
   const audioPlayerRef = useRef<AudioPlayerRef>(null);
@@ -32,12 +41,21 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
   }, []);
 
   const handleSegmentUpdate = useCallback(
-    async (id: number, text: string) => {
-      await updateSegmentText(id, text);
+    async (id: number, newText: string) => {
+      if (!note) return;
+      await updateSegmentText(id, newText);
+      if (note.fullTextStored) {
+        const oldSegment = note.segments.find((s) => s.id === id);
+        if (oldSegment) {
+          const updatedHtml = replaceSegmentTextInHtml(note.fullText, oldSegment.text, newText);
+          await updateNoteFullText(note.id, updatedHtml);
+        }
+      }
       await refresh();
+      setEditorVersion((v) => v + 1);
       showToast("Segment updated", "success");
     },
-    [refresh, showToast]
+    [note, refresh, showToast]
   );
 
   const handleEditTitle = useCallback(() => {
@@ -72,11 +90,31 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
     }
   }, [note, onBack, showToast]);
 
+  const handleFullTextSave = useCallback(
+    async (html: string) => {
+      if (!note) return;
+      try {
+        const newPlainText = stripHtml(html);
+        const changes = computeSegmentChanges(note.segments, newPlainText);
+        if (changes.length > 0) {
+          await saveFullTextWithSegments(note.id, html, changes);
+          await refresh();
+        } else {
+          await updateNoteFullText(note.id, html);
+        }
+      } catch (_err) {
+        showToast("Failed to save text", "error");
+      }
+    },
+    [note, refresh, showToast]
+  );
+
   const handleCopyText = useCallback(async () => {
     if (!note) return;
 
     try {
-      await navigator.clipboard.writeText(note.fullText);
+      const text = note.fullTextStored ? stripHtml(note.fullText) : note.fullText;
+      await navigator.clipboard.writeText(text);
       showToast("Text copied to clipboard", "success");
     } catch (_err) {
       showToast("Failed to copy text", "error");
@@ -197,18 +235,20 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-        {showSegments ? (
-          <SegmentList
-            segments={note.segments}
-            onTimestampClick={note.audioPath ? handleTimestampClick : undefined}
-            onSegmentUpdate={handleSegmentUpdate}
-          />
-        ) : (
-          <div className="prose dark:prose-invert max-w-none">
-            <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{note.fullText}</p>
-          </div>
-        )}
+      <div className={`flex-1 overflow-y-auto p-4 ${showSegments ? "" : "hidden"}`}>
+        <SegmentList
+          segments={note.segments}
+          onTimestampClick={note.audioPath ? handleTimestampClick : undefined}
+          onSegmentUpdate={handleSegmentUpdate}
+        />
+      </div>
+      <div className={`flex-1 overflow-y-auto p-4 ${showSegments ? "hidden" : ""}`}>
+        <FullTextEditor
+          key={editorVersion}
+          content={note.fullText}
+          isHtml={note.fullTextStored}
+          onSave={handleFullTextSave}
+        />
       </div>
 
       {note.audioPath && (
