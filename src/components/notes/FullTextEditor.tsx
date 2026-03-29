@@ -79,8 +79,8 @@ export function FullTextEditor({ content, isHtml, onSave }: FullTextEditorProps)
   if (!editor) return null;
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-      <div className="flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+    <div className="flex flex-col h-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="sticky top-0 z-10 flex flex-wrap gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
         <ToolbarButton onClick={() => toggle("Bold")} active={editor.isActive("bold")} title="Bold">
           <strong>B</strong>
         </ToolbarButton>
@@ -152,7 +152,7 @@ export function FullTextEditor({ content, isHtml, onSave }: FullTextEditorProps)
 
       <EditorContent
         editor={editor}
-        className="tiptap-editor p-4 min-h-[200px] prose dark:prose-invert max-w-none"
+        className="tiptap-editor p-4 min-h-[200px] flex-1 overflow-y-auto prose dark:prose-invert max-w-none"
       />
     </div>
   );

@@ -34,6 +34,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
   const [seekTo, setSeekTo] = useState<{ timeMs: number; id: number } | undefined>(undefined);
   const seekIdRef = useRef(0);
   const audioPlayerRef = useRef<AudioPlayerRef>(null);
+  const segmentsScrollRef = useRef<HTMLDivElement>(null);
 
   const handleTimestampClick = useCallback((timeMs: number) => {
     seekIdRef.current += 1;
@@ -51,7 +52,13 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
           await updateNoteFullText(note.id, updatedHtml);
         }
       }
+      const scrollTop = segmentsScrollRef.current?.scrollTop ?? 0;
       await refresh();
+      requestAnimationFrame(() => {
+        if (segmentsScrollRef.current) {
+          segmentsScrollRef.current.scrollTop = scrollTop;
+        }
+      });
       setEditorVersion((v) => v + 1);
       showToast("Segment updated", "success");
     },
@@ -235,14 +242,14 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
         </button>
       </div>
 
-      <div className={`flex-1 overflow-y-auto p-4 ${showSegments ? "" : "hidden"}`}>
+      <div ref={segmentsScrollRef} className={`flex-1 overflow-y-auto p-4 ${showSegments ? "" : "hidden"}`}>
         <SegmentList
           segments={note.segments}
           onTimestampClick={note.audioPath ? handleTimestampClick : undefined}
           onSegmentUpdate={handleSegmentUpdate}
         />
       </div>
-      <div className={`flex-1 overflow-y-auto p-4 ${showSegments ? "hidden" : ""}`}>
+      <div className={`flex-1 overflow-hidden p-4 ${showSegments ? "hidden" : ""}`}>
         <FullTextEditor
           key={editorVersion}
           content={note.fullText}
