@@ -56,6 +56,28 @@ body {
   animation: progress-indeterminate 1.5s ease-in-out infinite;
 }
 
+/* Search highlight */
+.search-highlight {
+  background-color: #fef08a;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.search-highlight-active {
+  background-color: #fdba74;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .search-highlight {
+    background-color: #854d0e;
+  }
+  .search-highlight-active {
+    background-color: #c2410c;
+  }
+}
+
 /* Tiptap editor styles */
 .tiptap-editor .tiptap {
   outline: none;

@@ -1,11 +1,78 @@
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, Extension } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useRef } from "react";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
+import { Decoration, DecorationSet } from "@tiptap/pm/view";
+
+const searchHighlightKey = new PluginKey("searchHighlight");
+const searchMetaKey = "searchUpdate";
+
+function buildDecorations(
+  doc: Parameters<typeof DecorationSet.create>[0],
+  query: string,
+  activeIndex: number
+) {
+  if (!query || query.length < 2) return DecorationSet.empty;
+  const decorations: Decoration[] = [];
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(escaped, "gi");
+  let matchCount = 0;
+  doc.descendants((node, pos) => {
+    if (!node.isText || !node.text) return;
+    let match;
+    while ((match = regex.exec(node.text)) !== null) {
+      const isActive = matchCount === activeIndex;
+      decorations.push(
+        Decoration.inline(pos + match.index, pos + match.index + match[0].length, {
+          class: isActive ? "search-highlight-active" : "search-highlight",
+        })
+      );
+      matchCount++;
+    }
+  });
+  return DecorationSet.create(doc, decorations);
+}
+
+const SearchHighlight = Extension.create({
+  name: "searchHighlight",
+
+  addStorage() {
+    return { query: "", activeIndex: -1 };
+  },
+
+  addProseMirrorPlugins() {
+    const storage = this.storage as { query: string; activeIndex: number };
+    return [
+      new Plugin({
+        key: searchHighlightKey,
+        state: {
+          init(_, { doc }) {
+            return buildDecorations(doc, storage.query, storage.activeIndex);
+          },
+          apply(tr, oldSet) {
+            if (tr.docChanged || tr.getMeta(searchMetaKey)) {
+              return buildDecorations(tr.doc, storage.query, storage.activeIndex);
+            }
+            return oldSet;
+          },
+        },
+        props: {
+          decorations(state) {
+            return this.getState(state) ?? DecorationSet.empty;
+          },
+        },
+      }),
+    ];
+  },
+});
 
 interface FullTextEditorProps {
   content: string;
   isHtml: boolean;
   onSave: (html: string) => void;
+  searchQuery?: string;
+  activeMatchIndex?: number;
+  onMatchCount?: (count: number) => void;
 }
 
 function ToolbarButton({
@@ -35,14 +102,21 @@ function ToolbarButton({
   );
 }
 
-export function FullTextEditor({ content, isHtml, onSave }: FullTextEditorProps) {
+export function FullTextEditor({
+  content,
+  isHtml,
+  onSave,
+  searchQuery = "",
+  activeMatchIndex = -1,
+  onMatchCount,
+}: FullTextEditorProps) {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const onSaveRef = useRef(onSave);
   onSaveRef.current = onSave;
   const dirtyRef = useRef(false);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [StarterKit, SearchHighlight],
     content: isHtml ? content : `<p>${content}</p>`,
     onUpdate: ({ editor }) => {
       dirtyRef.current = true;
@@ -64,6 +138,45 @@ export function FullTextEditor({ content, isHtml, onSave }: FullTextEditorProps)
       }
     };
   }, [editor]);
+
+  const onMatchCountRef = useRef(onMatchCount);
+  onMatchCountRef.current = onMatchCount;
+
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+
+    // Update storage and trigger decoration rebuild
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const storage = (editor.storage as any).searchHighlight;
+    storage.query = searchQuery;
+    storage.activeIndex = activeMatchIndex;
+    editor.view.dispatch(editor.state.tr.setMeta(searchMetaKey, true));
+
+    // Report match count
+    if (onMatchCountRef.current) {
+      let count = 0;
+      if (searchQuery && searchQuery.length >= 2) {
+        const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(escaped, "gi");
+        editor.state.doc.descendants((node) => {
+          if (node.isText && node.text) {
+            const matches = node.text.match(regex);
+            if (matches) count += matches.length;
+          }
+        });
+      }
+      onMatchCountRef.current(count);
+    }
+
+    // Scroll to active match
+    requestAnimationFrame(() => {
+      if (editor.isDestroyed) return;
+      const el = editor.view.dom.querySelector(".search-highlight-active");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  }, [editor, searchQuery, activeMatchIndex]);
 
   const toggle = useCallback(
     (cmd: string, attrs?: Record<string, unknown>) => {

@@ -1,10 +1,13 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import type { Segment } from "../../types";
 
 interface SegmentListProps {
   segments: Segment[];
   onTimestampClick?: (timeMs: number) => void;
   onSegmentUpdate?: (id: number, text: string) => Promise<void>;
+  searchQuery?: string;
+  activeMatchIndex?: number;
+  onMatchCount?: (count: number) => void;
 }
 
 const SPEAKER_COLORS = [
@@ -36,13 +39,70 @@ function formatTime(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
+function HighlightedText({
+  text,
+  query,
+  matchStartIndex = 0,
+  activeMatchIndex = -1,
+}: {
+  text: string;
+  query?: string;
+  matchStartIndex?: number;
+  activeMatchIndex?: number;
+}) {
+  const activeRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (activeRef.current) {
+      activeRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [activeMatchIndex]);
+
+  if (!query || query.length < 2) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+  let matchIdx = matchStartIndex;
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.toLowerCase() === query.toLowerCase()) {
+          const isActive = matchIdx === activeMatchIndex;
+          const idx = matchIdx;
+          matchIdx++;
+          return (
+            <mark
+              key={i}
+              ref={isActive ? activeRef : undefined}
+              className={`rounded px-0.5 ${isActive ? "bg-orange-300 dark:bg-orange-600" : "bg-yellow-200 dark:bg-yellow-700"}`}
+              data-match-index={idx}
+            >
+              {part}
+            </mark>
+          );
+        }
+        return part;
+      })}
+    </>
+  );
+}
+
 interface EditableSegmentProps {
   segment: Segment;
   onTimestampClick?: (timeMs: number) => void;
   onUpdate?: (id: number, text: string) => Promise<void>;
+  searchQuery?: string;
+  matchStartIndex?: number;
+  activeMatchIndex?: number;
 }
 
-function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmentProps) {
+function EditableSegment({
+  segment,
+  onTimestampClick,
+  onUpdate,
+  searchQuery,
+  matchStartIndex = 0,
+  activeMatchIndex = -1,
+}: EditableSegmentProps) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(segment.text);
   const [saving, setSaving] = useState(false);
@@ -127,7 +187,14 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
           </div>
         </div>
       ) : (
-        <p className="text-sm text-gray-900 dark:text-gray-100 flex-1">{segment.text}</p>
+        <p className="text-sm text-gray-900 dark:text-gray-100 flex-1">
+          <HighlightedText
+            text={segment.text}
+            query={searchQuery}
+            matchStartIndex={matchStartIndex}
+            activeMatchIndex={activeMatchIndex}
+          />
+        </p>
       )}
       {!editing && onUpdate && (
         <button
@@ -150,21 +217,59 @@ function EditableSegment({ segment, onTimestampClick, onUpdate }: EditableSegmen
   );
 }
 
-export function SegmentList({ segments, onTimestampClick, onSegmentUpdate }: SegmentListProps) {
+function countMatches(text: string, query: string): number {
+  if (!query || query.length < 2) return 0;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matches = text.match(new RegExp(escaped, "gi"));
+  return matches ? matches.length : 0;
+}
+
+export function SegmentList({
+  segments,
+  onTimestampClick,
+  onSegmentUpdate,
+  searchQuery,
+  activeMatchIndex = -1,
+  onMatchCount,
+}: SegmentListProps) {
+  const matchCounts = useMemo(
+    () => segments.map((s) => countMatches(s.text, searchQuery ?? "")),
+    [segments, searchQuery]
+  );
+
+  const totalMatches = useMemo(() => matchCounts.reduce((a, b) => a + b, 0), [matchCounts]);
+
+  const reportMatchCount = useCallback(
+    (count: number) => onMatchCount?.(count),
+    [onMatchCount]
+  );
+
+  useEffect(() => {
+    reportMatchCount(totalMatches);
+  }, [totalMatches, reportMatchCount]);
+
   if (segments.length === 0) {
     return <p className="text-gray-500 dark:text-gray-400 text-center py-4">No segments</p>;
   }
 
+  let runningIndex = 0;
   return (
     <div className="space-y-3">
-      {segments.map((segment) => (
-        <EditableSegment
-          key={segment.id}
-          segment={segment}
-          onTimestampClick={onTimestampClick}
-          onUpdate={onSegmentUpdate}
-        />
-      ))}
+      {segments.map((segment, i) => {
+        const startIndex = runningIndex;
+        runningIndex += matchCounts[i];
+        return (
+          <EditableSegment
+            key={segment.id}
+            segment={segment}
+            onTimestampClick={onTimestampClick}
+            onUpdate={onSegmentUpdate}
+            searchQuery={searchQuery}
+            matchStartIndex={startIndex}
+            activeMatchIndex={activeMatchIndex}
+          />
+        );
+      })}
     </div>
   );
 }
