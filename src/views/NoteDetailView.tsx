@@ -128,7 +128,7 @@ export function NoteDetailView({ noteId, onBack }: NoteDetailViewProps) {
     }
   }, [note, showToast]);
 
-  if (loading) {
+  if (loading && !note) {
     return <PageSpinner />;
   }
 
